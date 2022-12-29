@@ -30,6 +30,8 @@ class Deck(collections.abc.Sequence):
         return self._cards[position]
 
 
+RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+RANK_TO_INT = {rank: score for score, rank in enumerate(RANKS)}
 
 def describe_strategy(strategy_obj, flop, range):
     """ Given a JSON-like object from TexasSolver describing a flop situation and GTO
@@ -57,7 +59,7 @@ def describe_strategy(strategy_obj, flop, range):
     We want to show the bet/check/call/raise percentages for each of these parts of our range. We then want to cluster flops
     based on this.
 
-    The output strategy doesn't seem to include the actual original ranges or flop cards, so we need to store these when we make the call to the program.
+    The output strategy doesn't seem to include the actual original fractional ranges or flop cards, so we need to store these when we make the call to the program.
 
     
     """
@@ -78,12 +80,74 @@ def describe_strategy(strategy_obj, flop, range):
     total = df[obj['strategy']['actions']].to_numpy().sum()
     for action in obj['strategy']['actions']:
         print(action, df[action].sum(), df[action].sum()/total)
+
+    flop = sorted(flop, key=lambda x: RANK_TO_INT[x.rank], reverse=True)
+
+    # Any pair (at least, trips or two pairs also count)
+    pair_actions = collections.defaultdict(float)
+    tp_actions = collections.defaultdict(float)
+    fd_actions = collections.defaultdict(float)
+    overcard_actions = collections.defaultdict(float)
+    set_actions = collections.defaultdict(float)
+    for hole_cards_str, strategy in obj['strategy']['strategy'].items():
+        hole_cards = (Card(hole_cards_str[0], hole_cards_str[1]), Card(hole_cards_str[2], hole_cards_str[3]))
+        #print(hole_cards)
+        for flop_card in flop:
+            for card in hole_cards:
+                if card.rank == flop_card.rank:
+                    for action, frac in zip(obj['strategy']['actions'], strategy):
+                        #print(action, frac)
+                        pair_actions[action] += frac
+
+        # Top pair
+        for card in hole_cards:
+            if card.rank == flop[0].rank:
+                #print(card)
+                for action, frac in zip(obj['strategy']['actions'], strategy):
+                    #print(action, frac)
+                    tp_actions[action] += frac
+
+        # Flush draw
+        if hole_cards[0].suit == 'h' and hole_cards[1].suit == 'h':
+            for action, frac in zip(obj['strategy']['actions'], strategy):
+                #print(action, frac)
+                fd_actions[action] += frac
+
+
+        # Overcards
+        if RANK_TO_INT[hole_cards[0].rank] > RANK_TO_INT[flop[0].rank] and RANK_TO_INT[hole_cards[1].rank] > RANK_TO_INT[flop[0].rank]:
+            for action, frac in zip(obj['strategy']['actions'], strategy):
+                #print(action, frac)
+                overcard_actions[action] += frac
+
+        # Sets
+        if hole_cards[0].rank == hole_cards[1].rank:
+            for flop_card in flop:
+                if flop_card.rank == hole_cards[0].rank:
+                    print(hole_cards)
+                    for action, frac in zip(obj['strategy']['actions'], strategy):
+                        print(action, frac)
+                        set_actions[action] += frac
+                    break
+
+
+
+
+
+
+    print(pair_actions)
+    print(tp_actions)
+    print(fd_actions)
+    print(overcard_actions)
+    print(set_actions)
+
+
         
 
 
-deck = Deck()
+#deck = Deck()
 
-flop = random.sample(deck, k=3)
+#flop = random.sample(deck, k=3)
 
 #print(flop)
 
