@@ -1,0 +1,36 @@
+set_pot 24.5
+set_effective_stack 88
+set_board Qs,Jh,2h
+set_range_oop AA:1.000,AKs:1.000,AQs:1.000,AJs:1.000,ATs:0.179,A8s:0.179,A6s:0.295,A5s:0.295,A4s:0.295,A3s:0.295,A2s:0.513,AKo:1.000,KK:1.000,KQs:1.000,KJs:1.000,KTs:1.000,K9s:0.141,K8s:0.308,K7s:0.308,K6s:0.513,AQo:1.000,KQo:0.462,QQ:1.000,QJs:0.179,QTs:0.756,Q8s:0.308,AJo:0.500,KJo:0.500,QJo:0.500,JJ:1.000,J9s:0.526,J8s:0.526,ATo:0.487,KTo:0.500,QTo:0.141,JTo:0.141,TT:1.000,T9s:0.500,T8s:0.500,A9o:0.141,99:0.821,98s:0.500,97s:0.500,88:0.500,87s:0.500,77:0.500,76s:0.500,66:0.500,65s:0.192,55:0.192
+set_range_ip AA:0.833,AQs:1.000,AJs:1.000,ATs:1.000,A9s:0.833,A8s:1.000,A7s:0.179,A5s:1.000,A4s:1.000,KQs:1.000,KJs:1.000,KTs:1.000,K9s:1.000,K8s:0.179,K6s:0.487,AQo:0.833,KQo:0.833,QJs:1.000,QTs:1.000,AJo:0.654,KJo:0.436,JJ:0.487,JTs:1.000,TT:0.487,T9s:1.000,99:1.000,98s:0.487,88:1.000,87s:0.487,77:1.000,76s:0.179,66:1.000,55:0.487,44:0.179
+set_bet_sizes oop,flop,bet,50
+set_bet_sizes oop,flop,raise,60
+set_bet_sizes oop,flop,allin
+set_bet_sizes ip,flop,bet,50
+set_bet_sizes ip,flop,raise,60
+set_bet_sizes ip,flop,allin
+set_bet_sizes oop,turn,bet,50
+set_bet_sizes oop,turn,raise,60
+set_bet_sizes oop,turn,donk,50
+set_bet_sizes oop,turn,allin
+set_bet_sizes ip,turn,bet,50
+set_bet_sizes ip,turn,raise,60
+set_bet_sizes ip,turn,allin
+set_bet_sizes oop,river,bet,50
+set_bet_sizes oop,river,raise,60,100
+set_bet_sizes oop,river,allin
+set_bet_sizes ip,river,bet,50
+set_bet_sizes ip,river,raise,60,100
+set_bet_sizes oop,river,donk,50
+set_bet_sizes ip,river,allin
+set_allin_threshold 0.67
+set_raise_limit 3
+build_tree
+set_thread_num 8
+set_accuracy 0.5
+set_max_iteration 200
+set_print_interval10
+set_use_isomorphism 1
+start_solve
+set_dump_rounds 2
+dump_result output_result.json
