@@ -13,6 +13,10 @@ class Card(collections.namedtuple('Card', ['rank', 'suit'])):
         return f'{self.rank}{self.suit}'
     def __repr__(self):
         return f'{self.rank}{self.suit}'
+    @classmethod
+    def from_str(cls, card_str):
+        # Assumes representation of the form 'As', '2c', etc.
+        return cls(card_str[0], card_str[1])
 
 
 class Deck(collections.abc.Sequence):
@@ -32,6 +36,14 @@ class Deck(collections.abc.Sequence):
 
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 RANK_TO_INT = {rank: score for score, rank in enumerate(RANKS)}
+
+
+def group_holecards(holecards, flop):
+    for holecard in holecards:
+        if holecard.rank == 'A':
+            return 'Ace'
+    return 'low'
+
 
 def describe_strategy(strategy_obj, flop, range):
     """ Given a JSON-like object from TexasSolver describing a flop situation and GTO
@@ -74,6 +86,14 @@ def describe_strategy(strategy_obj, flop, range):
 
     df = pd.DataFrame.from_records([[hole_cards_str]+strategy for hole_cards_str, strategy in obj['strategy']['strategy'].items()],
                                    columns=['hole_cards'] + obj['strategy']['actions'])
+
+    df = df.set_index('hole_cards')
+    print(df)
+    df = df.groupby(by=lambda holecards_str: group_holecards((Card.from_str(holecards_str[0:2]), Card.from_str(holecards_str[2:4])),
+                                                    flop)).mean()
+
+    print(df)
+    return
 
     # First determine overall action percentages.
     # Note that this currently assumes each card is either wholly in the range or not.
