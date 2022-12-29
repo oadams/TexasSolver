@@ -31,7 +31,7 @@ class Deck(collections.abc.Sequence):
 
 
 
-def describe_strategy(strategy_obj, flop):
+def describe_strategy(strategy_obj, flop, range):
     """ Given a JSON-like object from TexasSolver describing a flop situation and GTO
     approximations of strategies for each player, produce an easily digestible human-intepretable
     description of the strategy, based on grouping cards together. Groups include:
@@ -71,15 +71,13 @@ def describe_strategy(strategy_obj, flop):
     #print(obj['childrens'].keys())
 
     df = pd.DataFrame.from_records([[hole_cards_str]+strategy for hole_cards_str, strategy in obj['strategy']['strategy'].items()],
-                                   columns=obj['strategy']['actions'])
-    print(df)
-    #for hole_cards_str, strategy in obj['strategy']['strategy'].items():
-    #    hole_cards = Card(hole_cards_str[0], hole_cards_str[1])
-    #    #print(strategy)
-    #    #print(hole_cards_str)
-
+                                   columns=['hole_cards'] + obj['strategy']['actions'])
 
     # First determine overall action percentages.
+    # Note that this currently assumes each card is either wholly in the range or not.
+    total = df[obj['strategy']['actions']].to_numpy().sum()
+    for action in obj['strategy']['actions']:
+        print(action, df[action].sum(), df[action].sum()/total)
         
 
 
@@ -91,4 +89,4 @@ flop = random.sample(deck, k=3)
 
 with open('/Users/oadams/code/TexasSolver/strategies/Live_GTO/BU_open/BB_3bet/BU_call/QsJh2h.json') as f:
     obj = json.loads(f.read())
-describe_strategy(obj, [Card('Q', 's'), Card('J', 'h'), Card('2', 'h')])
+describe_strategy(obj, [Card('Q', 's'), Card('J', 'h'), Card('2', 'h')], None)
