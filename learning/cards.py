@@ -38,11 +38,82 @@ RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 RANK_TO_INT = {rank: score for score, rank in enumerate(RANKS)}
 
 
-def group_holecards(holecards, flop):
-    for holecard in holecards:
-        if holecard.rank == 'A':
-            return 'Ace'
-    return 'low'
+def group_holecards(hole_cards, flop):
+    # TODO problem with this approach is that there is mutual exclusitivity
+
+    # Make sure flop is sorted, so that it's easy to tell what top pair is
+    flop = sorted(flop, key=lambda x: RANK_TO_INT[x.rank], reverse=True)
+
+    # Sets
+    if hole_cards[0].rank == hole_cards[1].rank:
+        for flop_card in flop:
+            if flop_card.rank == hole_cards[0].rank:
+                # NOTE: 4 of a kind returned as a set
+                return 'Set'
+        if RANK_TO_INT[hole_cards[0].rank] < RANK_TO_INT[flop[0].rank]:
+            # Then it's an underpair
+            return 'Pocket underpair'
+
+    # Pair-related
+    # TODO Currently ignoring two pairs
+    # TODO Need to handle TPTK
+    for card in hole_cards:
+        if card.rank == flop[0].rank:
+            return 'Top pair'
+    for card in hole_cards:
+        if card.rank == flop[1].rank or card.rank == flop[2].rank:
+            return 'pair'
+
+    # Flush-related
+    if hole_cards[0].suit == hole_cards[1].suit:
+        count = 0
+        for card in flop:
+            if card.suit == hole_cards[0].suit:
+                count += 1
+        if count == 3:
+            return 'Flush'
+        if count == 2:
+            return 'FD'
+        #if count == 1:
+        #    return 'BDFD'
+
+    # Straight-related
+    hole_and_flop = sorted(list(hole_cards) + flop, key=lambda x: RANK_TO_INT[x.rank])
+    #print(hole_and_flop)
+    max_count = 0
+    count = 0
+
+    # TODO: Need to account for gutshot straight draws
+    # TODO: Need to discount draws capped at Aces that are effectively gutshot.
+    for i, card in enumerate(hole_and_flop):
+        if i + 1 == len(hole_and_flop):
+            break
+        if RANK_TO_INT[card.rank] == RANK_TO_INT[hole_and_flop[i+1].rank] - 1:
+            count += 1
+        else:
+            if count > max_count:
+                max_count = count
+            count = 0
+    if count > max_count:
+        max_count = count
+    if max_count == 3:
+        #print('Straight draw', hole_cards, flop)
+        return 'SD'
+    if max_count == 4:
+        return 'Straight'
+
+    # Overcards
+    # TODO Make card class have a lt/gt comparators so we can abstract away RANK_TO_IN T
+    if RANK_TO_INT[hole_cards[0].rank] > RANK_TO_INT[flop[0].rank] and RANK_TO_INT[hole_cards[1].rank] > RANK_TO_INT[flop[0].rank]:
+        return 'Overcards'
+
+    # Ace-high
+    if hole_cards[0].rank == 'A' or hole_cards[1].rank == 'A':
+        return 'Ace high'
+
+    #print(hole_cards, flop)
+        
+    return 'Air'
 
 
 def describe_strategy(strategy_obj, flop, range):
@@ -94,72 +165,6 @@ def describe_strategy(strategy_obj, flop, range):
 
     print(df)
     return
-
-    # First determine overall action percentages.
-    # Note that this currently assumes each card is either wholly in the range or not.
-    total = df[obj['strategy']['actions']].to_numpy().sum()
-    for action in obj['strategy']['actions']:
-        print(action, df[action].sum(), df[action].sum()/total)
-
-    flop = sorted(flop, key=lambda x: RANK_TO_INT[x.rank], reverse=True)
-
-    # Any pair (at least, trips or two pairs also count)
-    pair_actions = collections.defaultdict(float)
-    tp_actions = collections.defaultdict(float)
-    fd_actions = collections.defaultdict(float)
-    overcard_actions = collections.defaultdict(float)
-    set_actions = collections.defaultdict(float)
-    for hole_cards_str, strategy in obj['strategy']['strategy'].items():
-        hole_cards = (Card(hole_cards_str[0], hole_cards_str[1]), Card(hole_cards_str[2], hole_cards_str[3]))
-        #print(hole_cards)
-        for flop_card in flop:
-            for card in hole_cards:
-                if card.rank == flop_card.rank:
-                    for action, frac in zip(obj['strategy']['actions'], strategy):
-                        #print(action, frac)
-                        pair_actions[action] += frac
-
-        # Top pair
-        for card in hole_cards:
-            if card.rank == flop[0].rank:
-                #print(card)
-                for action, frac in zip(obj['strategy']['actions'], strategy):
-                    #print(action, frac)
-                    tp_actions[action] += frac
-
-        # Flush draw
-        if hole_cards[0].suit == 'h' and hole_cards[1].suit == 'h':
-            for action, frac in zip(obj['strategy']['actions'], strategy):
-                #print(action, frac)
-                fd_actions[action] += frac
-
-
-        # Overcards
-        if RANK_TO_INT[hole_cards[0].rank] > RANK_TO_INT[flop[0].rank] and RANK_TO_INT[hole_cards[1].rank] > RANK_TO_INT[flop[0].rank]:
-            for action, frac in zip(obj['strategy']['actions'], strategy):
-                #print(action, frac)
-                overcard_actions[action] += frac
-
-        # Sets
-        if hole_cards[0].rank == hole_cards[1].rank:
-            for flop_card in flop:
-                if flop_card.rank == hole_cards[0].rank:
-                    print(hole_cards)
-                    for action, frac in zip(obj['strategy']['actions'], strategy):
-                        print(action, frac)
-                        set_actions[action] += frac
-                    break
-
-
-
-
-
-
-    print(pair_actions)
-    print(tp_actions)
-    print(fd_actions)
-    print(overcard_actions)
-    print(set_actions)
 
 
         
