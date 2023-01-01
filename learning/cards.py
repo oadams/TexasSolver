@@ -56,10 +56,19 @@ def group_holecards(hole_cards, flop):
 
     # Pair-related
     # TODO Currently ignoring two pairs
-    # TODO Need to handle TPTK
+    # TODO Need to handle TPTK where Ace is on the flop elegantly.
+    if hole_cards[0].rank == flop[0].rank:
+        # If there's not an ace on the flop then top kicker is A
+        if RANK_TO_INT[flop[0].rank] != RANK_TO_INT['A'] and hole_cards[1].rank == 'A':
+            return 'TPTK'
+    if hole_cards[1].rank == flop[0].rank:
+        # If there's not an ace on the flop then top kicker is A
+        if RANK_TO_INT[flop[0].rank] != RANK_TO_INT['A'] and hole_cards[0].rank == 'A':
+            return 'TPTK'
     for card in hole_cards:
         if card.rank == flop[0].rank:
-            return 'Top pair'
+            return 'TP'
+
     for card in hole_cards:
         if card.rank == flop[1].rank or card.rank == flop[2].rank:
             return 'pair'
